@@ -13,7 +13,7 @@ export default async function DiagnosticsPage() {
           <p className="text-sm font-medium text-blue-700 dark:text-blue-300">System diagnostics</p>
           <h1 className="mt-1 text-2xl font-semibold text-slate-950 dark:text-white">환경 진단</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            실제 Codex CLI 실행 전에 Node.js, npm, Git, MySQL CLI, Codex CLI 상태와 관련 환경변수를 확인합니다.
+            관리툴 실행 전에 Node.js, npm, Git, MySQL CLI, Codex CLI 상태와 주요 환경변수를 확인합니다.
           </p>
         </section>
 

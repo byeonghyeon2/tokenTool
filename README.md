@@ -107,6 +107,71 @@ Known local limitation:
 - `npm test` may fail in this Codex desktop shell with `spawn EPERM` before tests start.
 - `npm run test:coverage` requires `@vitest/coverage-v8`; installing it requires npm registry access.
 
+## Management Tool Source Control
+
+The management tool has its own source-control page:
+
+```text
+http://127.0.0.1:3000/source-control
+```
+
+This page manages only the management tool repository. It does not commit or push managed projects under `projects/`.
+
+The page checks:
+
+- current Git branch and commit
+- `origin` remote URL
+- upstream tracking branch
+- clean or dirty working tree
+- local `http.sslBackend`
+- whether `GITHUB_TOKEN` is configured
+- whether local proxy variables may break GitHub access
+
+The page can also run source control through the GitHub API:
+
+- upload local management-tool files as a GitHub commit
+- pull remote GitHub files into the local management-tool folder
+
+GitHub push target:
+
+```text
+https://github.com/byeonghyeon2/tokenTool.git
+```
+
+Token setup:
+
+```text
+GITHUB_TOKEN=github_pat_xxxxxxxxxxxxxxxxx
+```
+
+Put the token in the root `.env` file. Do not put it in `.env.example`, Markdown files, or committed source.
+
+Required token permission:
+
+- Fine-grained token: `Contents: Read and write` for `byeonghyeon2/tokenTool`
+- Classic token: `repo`
+
+The source-control API intentionally:
+
+- reads the token without printing it
+- does not run local `git` from the Next.js server process
+- uses GitHub blob/tree/commit/ref APIs
+- excludes `.env`, `projects/*`, `workspace-data`, `node_modules`, `.next`, and logs
+- keeps managed projects separate from management-tool source control
+
+## Encoding Policy
+
+All source files and Markdown documents must be UTF-8.
+
+Repository-level files enforce this:
+
+```text
+.editorconfig
+.gitattributes
+```
+
+Do not save Korean UI text with legacy encodings such as CP949/EUC-KR. If Korean text appears broken, rewrite the affected file as UTF-8 and verify with the source-control or diagnostics flow before committing.
+
 ## Database Setup
 
 The Prisma schema is in `platform/prisma/schema.prisma`.

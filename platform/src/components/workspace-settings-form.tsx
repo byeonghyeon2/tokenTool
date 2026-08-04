@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2, Save } from "lucide-react";
+import { useState } from "react";
 
 import type { StoredWorkspaceSetting } from "@/lib/workspace-files";
 
@@ -59,7 +59,7 @@ export function WorkspaceSettingsForm({ initialSetting }: { initialSetting: Stor
       <div>
         <h1 className="text-2xl font-semibold text-slate-950 dark:text-white">Workspace 설정</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-          프로젝트 루트와 Codex CLI 실행 설정을 관리합니다. 다양한 언어의 프로젝트를 넣어도 감지 기준 파일로 구분합니다.
+          관리툴 루트, 프로젝트 보관 경로, Codex 실행 옵션을 관리합니다. 실제 프로젝트는 `PROJECTS_ROOT` 아래의 1단계 폴더 기준으로 감지합니다.
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export function WorkspaceSettingsForm({ initialSetting }: { initialSetting: Stor
               className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none ring-blue-600 focus:ring-2 dark:border-slate-800 dark:bg-slate-950"
             >
               <option value="false">false - 실제 CLI 실행 차단</option>
-              <option value="true">true - 확인 문구 입력 시 실행 허용</option>
+              <option value="true">true - 확인 후 실제 CLI 실행 허용</option>
             </select>
           </label>
           <TextField label="CODEX_TIMEOUT_MS" name="codexTimeoutMs" value={form.codexTimeoutMs} onChange={updateField} />
@@ -98,6 +98,7 @@ export function WorkspaceSettingsForm({ initialSetting }: { initialSetting: Stor
           className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={isSaving}
           onClick={saveSetting}
+          type="button"
         >
           {isSaving ? <Loader2 className="animate-spin" size={16} aria-hidden /> : <Save size={16} aria-hidden />}
           설정 저장

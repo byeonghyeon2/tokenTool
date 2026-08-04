@@ -27,6 +27,7 @@ const menuItems = [
   { label: "프로젝트 작업", icon: BookOpen, href: "/project-summary" },
   { label: "검토 현황", icon: ClipboardCheck, href: "/review-board" },
   { label: "작업 기록", icon: FileClock, href: "/runs" },
+  { label: "소스 관리", icon: GitBranch, href: "/source-control" },
   { label: "MySQL 설정", icon: Database, href: "/settings/database" },
   { label: "환경 진단", icon: MonitorCog, href: "/diagnostics" },
   { label: "사용 방법", icon: BookOpen, href: "/workspace-guide" },
@@ -47,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <div>
               <p className="text-sm font-semibold leading-5">AI Dev Workspace</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Markdown 기반 ChatGPT/Codex 복붙 작업대</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Markdown 기반 ChatGPT/Codex 복붙 작업 관리</p>
             </div>
           </div>
           <div className="hidden items-center gap-3 text-sm text-slate-600 dark:text-slate-300 md:flex">
@@ -72,7 +73,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <div className={cn("mx-auto grid max-w-7xl grid-cols-1 gap-0 px-4 transition-[grid-template-columns] sm:px-6 lg:grid-cols-[220px_1fr]", isSidebarCollapsed && "lg:grid-cols-[72px_1fr]")}>
+      <div
+        className={cn(
+          "mx-auto grid max-w-7xl grid-cols-1 gap-0 px-4 transition-[grid-template-columns] sm:px-6 lg:grid-cols-[220px_1fr]",
+          isSidebarCollapsed && "lg:grid-cols-[72px_1fr]"
+        )}
+      >
         <aside className="hidden border-r border-slate-200 py-6 pr-4 dark:border-slate-800 lg:block">
           <button
             className={cn(

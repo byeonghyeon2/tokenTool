@@ -83,6 +83,47 @@ Stop by PID:
 taskkill /PID <PID> /F
 ```
 
+## Push Management Tool Source
+
+Use the UI:
+
+```text
+http://127.0.0.1:3000/source-control
+```
+
+The source-control page pushes only the management tool repository to:
+
+```text
+https://github.com/byeonghyeon2/tokenTool.git
+```
+
+Before pushing, create a root `.env` file:
+
+```text
+AI-DEV-WORKSPACE/.env
+```
+
+Add:
+
+```text
+GITHUB_TOKEN=github_pat_xxxxxxxxxxxxxxxxx
+```
+
+Required GitHub token permissions:
+
+- Fine-grained token: `Contents: Read and write` for `byeonghyeon2/tokenTool`
+- Classic token: `repo`
+
+The push flow clears local proxy variables and uses OpenSSL for Git HTTPS calls. This avoids the observed `127.0.0.1:9` proxy issue and Windows `schannel` credential failure.
+
+Supported actions through the GitHub API:
+
+- status check
+- upload local management-tool source as a GitHub commit
+- pull remote GitHub source into the local management-tool folder
+
+The page never includes `projects/*`, `.env`, `workspace-data`, `node_modules`, or `.next` in source control.
+
 ## Managed Project Server Rules
 
 Managed project server execution is separate.
