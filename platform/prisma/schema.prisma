@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id                  String          @id @default(cuid())
+  name                String          @unique
+  description         String          @db.Text
+  rootPath            String
+  status              String          @default("active")
+  stackSummary        String          @db.Text
+  architectureSummary String          @db.Text
+  projectRules        Json?
+  restrictions        Json?
+  runCommand          String?
+  testCommand         String?
+  buildCommand        String?
+  lintCommand         String?
+  typecheckCommand    String?
+  lastAnalyzedAt      DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  changeRequests      ChangeRequest[]
+  codexRuns           CodexRun[]
+}
+
+model ChangeRequest {
+  id                    String                 @id @default(cuid())
+  projectId             String
+  content               String                 @db.Text
+  mustKeep              String?                @db.Text
+  doNotModify           String?                @db.Text
+  additionalConstraints String?                @db.Text
+  status                String                 @default("draft")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  project               Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  analysis              ProjectAnalysis?
+  chatGptPrompts        GeneratedChatGptPrompt[]
+  codexPrompts          CodexPrompt[]
+  codexRuns             CodexRun[]
+}
+
+model ProjectAnalysis {
+  id                String        @id @default(cuid())
+  changeRequestId   String        @unique
+  confirmedFindings Json
+  relatedAreas      Json
+  confirmedFiles    Json
+  candidateFiles    Json
+  currentBehavior   String        @db.Text
+  risks             Json
+  unknowns          Json
+  createdAt         DateTime      @default(now())
+  changeRequest     ChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
+}
+
+model GeneratedChatGptPrompt {
+  id              String        @id @default(cuid())
+  changeRequestId String
+  content         String        @db.LongText
+  createdAt       DateTime      @default(now())
+  changeRequest   ChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
+}
+
+model CodexPrompt {
+  id              String        @id @default(cuid())
+  changeRequestId String
+  content         String        @db.LongText
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  changeRequest   ChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
+}
+
+model CodexRun {
+  id              String             @id @default(cuid())
+  projectId       String
+  changeRequestId String?
+  mode            String
+  status          String             @default("queued")
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  exitCode        Int?
+  summary         String?            @db.Text
+  createdAt       DateTime           @default(now())
+  project         Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  changeRequest   ChangeRequest?     @relation(fields: [changeRequestId], references: [id], onDelete: SetNull)
+  logs            CodexLog[]
+  fileChanges     FileChange[]
+  validations     ValidationResult[]
+}
+
+model CodexLog {
+  id         String   @id @default(cuid())
+  codexRunId String
+  stream     String
+  level      String
+  content    String   @db.Text
+  sequence   Int
+  createdAt  DateTime @default(now())
+  codexRun   CodexRun @relation(fields: [codexRunId], references: [id], onDelete: Cascade)
+}
+
+model FileChange {
+  id         String   @id @default(cuid())
+  codexRunId String
+  filePath   String
+  changeType String
+  additions  Int      @default(0)
+  deletions  Int      @default(0)
+  patch      String?  @db.LongText
+  createdAt  DateTime @default(now())
+  codexRun   CodexRun @relation(fields: [codexRunId], references: [id], onDelete: Cascade)
+}
+
+model ValidationResult {
+  id            String   @id @default(cuid())
+  codexRunId    String
+  type          String
+  command       String
+  status        String
+  exitCode      Int?
+  outputSummary String?  @db.Text
+  createdAt     DateTime @default(now())
+  codexRun      CodexRun @relation(fields: [codexRunId], references: [id], onDelete: Cascade)
+}
+
+model WorkspaceSetting {
+  id           String   @id @default(cuid())
+  workspaceRoot String
+  projectsRoot  String
+  codexCommand  String   @default("codex")
+  scanInterval  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DatabaseSetting {
+  id                    String   @id @default(cuid())
+  host                  String
+  port                  Int      @default(3306)
+  databaseName          String
+  username              String
+  sslEnabled            Boolean  @default(false)
+  additionalOptions     Json?
+  credentialStorageType String   @default("environment")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
