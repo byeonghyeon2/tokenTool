@@ -10,7 +10,7 @@ function Read-GitHubToken {
   }
 
   if (-not (Test-Path $EnvPath)) {
-    throw "GITHUB_TOKEN이 없습니다. 루트 .env 파일을 확인하세요."
+    throw "GITHUB_TOKEN_MISSING"
   }
 
   $TokenLine = Get-Content -LiteralPath $EnvPath |
@@ -18,7 +18,7 @@ function Read-GitHubToken {
     Select-Object -First 1
 
   if (-not $TokenLine) {
-    throw "루트 .env 파일에 GITHUB_TOKEN 항목이 없습니다."
+    throw "GITHUB_TOKEN_ENTRY_MISSING"
   }
 
   return ($TokenLine -replace '^GITHUB_TOKEN=', '').Trim().Trim('"').Trim("'")
@@ -33,7 +33,7 @@ function Invoke-Git {
   & git @Arguments
 
   if ($LASTEXITCODE -ne 0) {
-    throw "git 명령 실행 실패: exit code $LASTEXITCODE"
+    throw "GIT_COMMAND_FAILED_EXIT_CODE_$LASTEXITCODE"
   }
 }
 
@@ -68,4 +68,4 @@ if ($Status) {
 $AuthHeader = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("x-access-token:$Token"))
 Invoke-Git @("-c", "http.https://github.com/.extraheader=AUTHORIZATION: basic $AuthHeader", "push", "-u", "origin", $Branch)
 
-Write-Output "관리툴 소스 push 완료: $RepositoryUrl ($Branch)"
+Write-Output "MANAGEMENT_SOURCE_PUSHED $RepositoryUrl ($Branch)"
