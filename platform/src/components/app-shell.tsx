@@ -27,7 +27,6 @@ const menuItems = [
   { label: "프로젝트 작업", icon: BookOpen, href: "/project-summary" },
   { label: "검토 현황", icon: ClipboardCheck, href: "/review-board" },
   { label: "작업 기록", icon: FileClock, href: "/runs" },
-  { label: "소스 관리", icon: GitBranch, href: "/source-control" },
   { label: "MySQL 설정", icon: Database, href: "/settings/database" },
   { label: "환경 진단", icon: MonitorCog, href: "/diagnostics" },
   { label: "사용 방법", icon: BookOpen, href: "/workspace-guide" },

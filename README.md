@@ -109,28 +109,16 @@ Known local limitation:
 
 ## Management Tool Source Control
 
-The management tool has its own source-control page:
+Source control for this management tool is an internal operator workflow, not a UI feature.
 
-```text
-http://127.0.0.1:3000/source-control
+When the user asks Codex to push the management tool source, run:
+
+```powershell
+cd C:\Users\Administrator\Documents\Codex\2026-07-15\files-mentioned-by-the-user-txt\work\AI-DEV-WORKSPACE
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\push-management-source.ps1
 ```
 
-This page manages only the management tool repository. It does not commit or push managed projects under `projects/`.
-
-The page checks:
-
-- current Git branch and commit
-- `origin` remote URL
-- upstream tracking branch
-- clean or dirty working tree
-- local `http.sslBackend`
-- whether `GITHUB_TOKEN` is configured
-- whether local proxy variables may break GitHub access
-
-The page can also run source control through the GitHub API:
-
-- upload local management-tool files as a GitHub commit
-- pull remote GitHub files into the local management-tool folder
+The script manages only the management tool repository. It does not commit or push managed projects under `projects/`.
 
 GitHub push target:
 
@@ -151,11 +139,13 @@ Required token permission:
 - Fine-grained token: `Contents: Read and write` for `byeonghyeon2/tokenTool`
 - Classic token: `repo`
 
-The source-control API intentionally:
+The push script intentionally:
 
 - reads the token without printing it
-- does not run local `git` from the Next.js server process
-- uses GitHub blob/tree/commit/ref APIs
+- clears `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`
+- sets `http.sslBackend=openssl` for this repository
+- commits pending management-tool changes with `Update management tool source`
+- pushes the current branch to `origin`
 - excludes `.env`, `projects/*`, `workspace-data`, `node_modules`, `.next`, and logs
 - keeps managed projects separate from management-tool source control
 
@@ -170,7 +160,7 @@ Repository-level files enforce this:
 .gitattributes
 ```
 
-Do not save Korean UI text with legacy encodings such as CP949/EUC-KR. If Korean text appears broken, rewrite the affected file as UTF-8 and verify with the source-control or diagnostics flow before committing.
+Do not save Korean UI text with legacy encodings such as CP949/EUC-KR. If Korean text appears broken, rewrite the affected file as UTF-8 and verify with typecheck, lint, and diagnostics before committing.
 
 ## Database Setup
 

@@ -85,13 +85,16 @@ taskkill /PID <PID> /F
 
 ## Push Management Tool Source
 
-Use the UI:
+Source control is handled internally by Codex/operator scripts, not by an in-app screen.
 
-```text
-http://127.0.0.1:3000/source-control
+Use:
+
+```powershell
+cd C:\Users\Administrator\Documents\Codex\2026-07-15\files-mentioned-by-the-user-txt\work\AI-DEV-WORKSPACE
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\push-management-source.ps1
 ```
 
-The source-control page pushes only the management tool repository to:
+The script pushes only the management tool repository to:
 
 ```text
 https://github.com/byeonghyeon2/tokenTool.git
@@ -116,13 +119,7 @@ Required GitHub token permissions:
 
 The push flow clears local proxy variables and uses OpenSSL for Git HTTPS calls. This avoids the observed `127.0.0.1:9` proxy issue and Windows `schannel` credential failure.
 
-Supported actions through the GitHub API:
-
-- status check
-- upload local management-tool source as a GitHub commit
-- pull remote GitHub source into the local management-tool folder
-
-The page never includes `projects/*`, `.env`, `workspace-data`, `node_modules`, or `.next` in source control.
+The script never includes `projects/*`, `.env`, `workspace-data`, `node_modules`, or `.next` in source control.
 
 ## Managed Project Server Rules
 
