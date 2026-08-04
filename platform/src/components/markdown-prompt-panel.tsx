@@ -84,7 +84,7 @@ export function MarkdownPromptPanel({
             <h2 className="text-lg font-semibold text-slate-950 dark:text-white">프로젝트 수정 요청</h2>
           </div>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            프로젝트의 Markdown 문서와 사용자가 원하는 수정 내용을 조합해 ChatGPT에 복붙할 분석 프롬프트를 생성합니다.
+            선택한 프로젝트의 Markdown 문서와 사용자의 수정 요청을 조합해 ChatGPT에 붙여넣을 분석 프롬프트를 생성합니다.
           </p>
         </div>
         <span className="rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-200">복붙 기본 흐름</span>
@@ -93,7 +93,7 @@ export function MarkdownPromptPanel({
       <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="change-request">
-            내가 수정하고자 하는 내용
+            수정하고 싶은 내용
             <textarea
               id="change-request"
               value={changeRequest}
@@ -103,7 +103,7 @@ export function MarkdownPromptPanel({
                 setCopyState("idle");
               }}
               className="mt-2 min-h-36 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600 transition focus:ring-2 dark:border-slate-800 dark:bg-slate-950"
-              placeholder="예: 블로그 글 생성 결과에 SEO 제목 후보와 태그 추천을 추가하고, 티스토리에 복사하기 쉬운 형식으로 정리하고 싶다."
+              placeholder="예: 블로그 글 생성 결과에 SEO 제목 후보와 태그 추천을 추가하고, 히스토리를 복사하기 쉬운 형식으로 정리하고 싶다."
             />
           </label>
 
@@ -162,7 +162,7 @@ export function MarkdownPromptPanel({
             </div>
           )}
 
-          {copyState === "failed" && <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">브라우저 권한 때문에 자동 복사에 실패했습니다.</p>}
+          {copyState === "failed" && <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">브라우저 권한 문제로 자동 복사에 실패했습니다.</p>}
           <pre className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap rounded-lg bg-white p-4 font-mono text-xs leading-5 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
             {result.prompt.content}
           </pre>

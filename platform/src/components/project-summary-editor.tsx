@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { ExternalLink, Loader2, Play } from "lucide-react";
 
 import type { ScannedProject } from "@/lib/project-scanner";
@@ -117,7 +117,7 @@ export function ProjectSummaryEditor({
         <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
           <div>
             <h3 className="text-sm font-semibold text-slate-950 dark:text-white">실제 프로젝트 서버 명령</h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">관리툴 서버가 아니라, 선택한 프로젝트 폴더에서 실행할 명령입니다.</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">관리툴 서버가 아니라 선택한 프로젝트 폴더에서 실행할 명령입니다.</p>
           </div>
           {selectedCommand && <code className="rounded-md bg-white px-2 py-1 font-mono text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200">{selectedCommand}</code>}
         </div>

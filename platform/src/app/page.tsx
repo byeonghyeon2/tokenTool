@@ -8,17 +8,17 @@ import { getProjectsRoot, scanProjects } from "@/lib/project-scanner";
 const homeSteps = [
   {
     title: "프로젝트 등록",
-    body: "복사한 폴더, 업로드한 폴더, GitHub 저장소를 PROJECTS_ROOT 아래에 연결합니다.",
+    body: "복사한 폴더, 업로드한 폴더, GitHub 저장소를 관리 대상 폴더 아래에 연결합니다.",
     icon: ShieldCheck
   },
   {
     title: "수정 요청 정리",
-    body: "선택한 프로젝트의 .md와 변경 요청만 조합해 ChatGPT 분석 프롬프트를 만듭니다.",
+    body: "선택한 프로젝트의 Markdown 문서와 수정 요청을 조합해 ChatGPT 분석 프롬프트를 만듭니다.",
     icon: FileCode2
   },
   {
     title: "Codex 반복",
-    body: "ChatGPT 결과를 Codex에 붙여넣고 수정, 커밋, pull 후 다시 분석합니다.",
+    body: "ChatGPT 결과를 Codex에 붙여넣고 수정, 커밋, 재분석 흐름을 반복합니다.",
     icon: TerminalSquare
   }
 ];
@@ -32,7 +32,7 @@ export default async function Home() {
         <section>
           <h1 className="text-2xl font-semibold tracking-normal text-slate-950 dark:text-white">프로젝트별 Codex 작업 관리</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            관리툴은 프로젝트를 직접 섞어 읽지 않고, 선택한 하나의 프로젝트 문서와 Git 상태만 분석합니다.
+            관리툴은 프로젝트를 섞어 읽지 않고, 선택한 하나의 프로젝트 문서와 Git 상태만 분석합니다.
           </p>
         </section>
 

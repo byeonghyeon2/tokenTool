@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, FolderInput, FolderPlus, Github, Loader2, RefreshCw, Upload, type LucideIcon } from "lucide-react";
 
 type ImportResponse =
@@ -119,7 +119,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
           </p>
 
           <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-            <Label icon={FolderInput} title="1. 이미 복사한 폴더 등록" text="PROJECTS_ROOT 아래에 직접 넣은 폴더명을 등록합니다." />
+            <Label icon={FolderInput} title="1. 복사된 폴더 등록" text="이미 관리 대상 폴더 아래에 있는 프로젝트 폴더명을 등록합니다." />
             <div className="flex gap-2">
               <input
                 value={manualProjectName}
@@ -140,7 +140,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
           </div>
 
           <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-            <Label icon={Upload} title="2. 폴더 업로드" text="브라우저에서 선택한 폴더를 하위 파일까지 PROJECTS_ROOT에 복사합니다." />
+            <Label icon={Upload} title="2. 폴더 업로드" text="브라우저에서 선택한 폴더와 하위 파일을 관리 대상 폴더로 복사합니다." />
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -180,7 +180,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
               <input
                 value={githubProjectName}
                 onChange={(event) => setGithubProjectName(event.target.value)}
-                placeholder="저장할 폴더명, 비우면 저장소명"
+                placeholder="저장할 폴더명, 비우면 저장소명 사용"
                 className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none ring-blue-600 focus:ring-2 dark:border-slate-800 dark:bg-slate-900"
               />
               <button

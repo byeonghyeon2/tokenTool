@@ -33,14 +33,14 @@ export async function startProjectServer({
   const project = await scanProjectCandidate(projectPath);
 
   if (!project) {
-    throw new Error("프로젝트 정보를 찾지 못했습니다.");
+    throw new Error("프로젝트 정보를 찾을 수 없습니다.");
   }
 
   const allowedCommands = getServerCommandCandidates(project);
   const selectedCommand = command.trim();
 
   if (!selectedCommand) {
-    throw new Error("실행할 명령어를 선택하세요.");
+    throw new Error("실행할 명령을 선택하세요.");
   }
 
   if (!allowedCommands.includes(selectedCommand)) {
@@ -57,7 +57,7 @@ export async function startProjectServer({
     windowsHide: true,
     env: {
       ...process.env,
-      Path: `C:\\Program Files\\nodejs;${process.env.Path || ""}`
+      Path: `C:\\Program Files\\nodejs;${process.env.Path || process.env.PATH || ""}`
     }
   });
 
@@ -145,25 +145,10 @@ function inferAccessUrls(command: string, stack: string) {
     urls.add(`http://${host}:${explicitPort}`);
   }
 
-  if (text.includes("vite")) {
-    urls.add(`http://${host}:5173`);
-  }
-
-  if (text.includes("next")) {
-    urls.add(`http://${host}:3000`);
-  }
-
-  if (text.includes("uvicorn") || text.includes("fastapi")) {
-    urls.add(`http://${host}:8000`);
-  }
-
-  if (text.includes("python")) {
-    urls.add(`http://${host}:8000`);
-  }
-
-  if (text.includes("spring") || text.includes("java") || text.includes("gradle") || text.includes("mvn")) {
-    urls.add(`http://${host}:8080`);
-  }
+  if (text.includes("vite")) urls.add(`http://${host}:5173`);
+  if (text.includes("next")) urls.add(`http://${host}:3000`);
+  if (text.includes("uvicorn") || text.includes("fastapi") || text.includes("python")) urls.add(`http://${host}:8000`);
+  if (text.includes("spring") || text.includes("java") || text.includes("gradle") || text.includes("mvn")) urls.add(`http://${host}:8080`);
 
   if (urls.size === 0) {
     urls.add(`http://${host}:3000`);
