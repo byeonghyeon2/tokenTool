@@ -1,180 +1,79 @@
 # AI Dev Workspace
 
-AI Dev Workspace is a local management tool for project-specific Codex work.
+로컬 프로젝트별 Codex 작업을 관리하는 도구입니다.
 
-The core workflow is manual copy and paste:
+## 목적
 
-1. Register or import a project into the managed project folder.
-2. Select one project in the management UI.
-3. The tool reads only that project's Markdown files and Git state.
-4. The user writes the requested change.
-5. The tool generates a ChatGPT analysis prompt.
-6. The user pastes the prompt into ChatGPT.
-7. ChatGPT returns a focused Codex execution prompt.
-8. The user pastes that prompt into Codex and commits the project changes.
-9. Repeat from the next Git change set.
+- 프로젝트별 문서와 Git 상태를 분리해서 읽습니다.
+- 사용자의 수정 요청과 프로젝트 `.md` 내용을 조합해 ChatGPT용 분석 프롬프트를 만듭니다.
+- ChatGPT가 만든 Codex 실행 프롬프트를 복사해 Codex에서 적용하는 흐름을 지원합니다.
+- OpenAI API나 ChatGPT 웹 자동 조작은 사용하지 않습니다.
 
-The tool does not call the OpenAI API and does not automate the ChatGPT website.
-
-## Repository Scope
-
-This repository is for the management tool itself.
-
-Managed projects under `projects/` are runtime inputs and should not be committed into this repository. Each managed project should have its own Git repository.
-
-## Directory Layout
+## 구성
 
 ```text
-AI-DEV-WORKSPACE/
-  platform/              Next.js management tool source
-  projects/              Managed project folders, ignored by this repo
-  templates/             Prompt and document templates
-  workspace-data/        Local runtime data, logs, and generated metadata
-  .env.example           Environment variable template
-  AGENTS.md              Agent and safety rules
-  README.md              This document
+platform/       관리툴 소스
+projects/       관리 대상 프로젝트, Git 커밋 제외
+templates/      프롬프트 템플릿
+workspace-data/ 실행 로그와 로컬 데이터, Git 커밋 제외
+scripts/        내부 운영 스크립트
 ```
 
-## Requirements
-
-- Windows PowerShell
-- Node.js 24.x or compatible current Node.js
-- npm
-- Git
-- MySQL, only when DB-backed features are used
-
-## Environment Setup
-
-Copy `.env.example` to `.env` at the workspace root or provide the same variables through the shell.
+## 실행
 
 ```powershell
-cd C:\Users\Administrator\Documents\Codex\2026-07-15\files-mentioned-by-the-user-txt\work\AI-DEV-WORKSPACE
-Copy-Item .env.example .env
-```
-
-Key variables:
-
-```text
-WORKSPACE_ROOT=absolute path to AI-DEV-WORKSPACE
-PROJECTS_ROOT=absolute path to AI-DEV-WORKSPACE\projects
-DATABASE_URL=mysql://user:password@127.0.0.1:3306/database_name
-CODEX_PROVIDER=mock
-CODEX_CLI_ENABLED=false
-```
-
-`DATABASE_URL` can be empty while running UI-only or file-scanning features. Prisma-backed screens require a valid MySQL connection.
-
-## Install
-
-```powershell
-cd C:\Users\Administrator\Documents\Codex\2026-07-15\files-mentioned-by-the-user-txt\work\AI-DEV-WORKSPACE\platform
+cd platform
 npm install
-```
-
-## Start The Management Tool Server
-
-In this workspace, "start the server" means start the management tool server unless explicitly stated otherwise.
-
-Use the provided launcher:
-
-```powershell
-cd C:\Users\Administrator\Documents\Codex\2026-07-15\files-mentioned-by-the-user-txt\work\AI-DEV-WORKSPACE\platform
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\start-management-server.ps1
 ```
 
-Open:
+접속:
 
 ```text
 http://127.0.0.1:3000/
 ```
 
-The launcher uses `node server.js` instead of `npm run dev`. This avoids local Windows shell issues where `next dev`, `next build`, or `Start-Process` can fail with `spawn EPERM` or duplicated `Path/PATH` environment variables.
+## 환경 설정
 
-## Development Commands
+루트 `.env` 파일에 필요한 값만 넣습니다. `.env`는 Git에 올라가지 않습니다.
 
-```powershell
-cd platform
-npm run typecheck
-npm run lint
-npm test
-npm run test:coverage
+```env
+WORKSPACE_ROOT=
+PROJECTS_ROOT=
+DATABASE_URL=
+GITHUB_TOKEN=
 ```
 
-Known local limitation:
+`GITHUB_TOKEN`은 GitHub 비밀번호가 아니라 Personal Access Token입니다.
 
-- `npm run typecheck` passes.
-- `npm run lint` passes.
-- `npm test` may fail in this Codex desktop shell with `spawn EPERM` before tests start.
-- `npm run test:coverage` requires `@vitest/coverage-v8`; installing it requires npm registry access.
+필요 권한:
 
-## Management Tool Source Control
+- Fine-grained token: 해당 저장소 `Contents: Read and write`
+- Classic token: `repo`
 
-Source control for this management tool is an internal operator workflow, not a UI feature.
+## 소스 관리
 
-When the user asks Codex to push the management tool source, run:
+소스 관리는 화면에 노출하지 않습니다. Codex가 내부 스크립트로 처리합니다.
 
 ```powershell
-cd C:\Users\Administrator\Documents\Codex\2026-07-15\files-mentioned-by-the-user-txt\work\AI-DEV-WORKSPACE
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\push-management-source.ps1
 ```
 
-The script manages only the management tool repository. It does not commit or push managed projects under `projects/`.
+규칙:
 
-GitHub push target:
+- 관리툴 소스만 커밋하고 push합니다.
+- `projects/`, `.env`, `workspace-data/`, `node_modules/`, `.next/`, 로그 파일은 제외합니다.
+- 토큰 값은 출력하지 않습니다.
 
-```text
-https://github.com/byeonghyeon2/tokenTool.git
-```
+## DB 설정
 
-Token setup:
-
-```text
-GITHUB_TOKEN=github_pat_xxxxxxxxxxxxxxxxx
-```
-
-Put the token in the root `.env` file. Do not put it in `.env.example`, Markdown files, or committed source.
-
-Required token permission:
-
-- Fine-grained token: `Contents: Read and write` for `byeonghyeon2/tokenTool`
-- Classic token: `repo`
-
-The push script intentionally:
-
-- reads the token without printing it
-- clears `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`
-- sets `http.sslBackend=openssl` for this repository
-- commits pending management-tool changes with `Update management tool source`
-- pushes the current branch to `origin`
-- excludes `.env`, `projects/*`, `workspace-data`, `node_modules`, `.next`, and logs
-- keeps managed projects separate from management-tool source control
-
-## Encoding Policy
-
-All source files and Markdown documents must be UTF-8.
-
-Repository-level files enforce this:
+DB 기능을 쓰는 경우에만 `DATABASE_URL`을 설정합니다.
 
 ```text
-.editorconfig
-.gitattributes
+mysql://사용자:비밀번호@호스트:포트/DB명
 ```
 
-Do not save Korean UI text with legacy encodings such as CP949/EUC-KR. If Korean text appears broken, rewrite the affected file as UTF-8 and verify with typecheck, lint, and diagnostics before committing.
-
-## Database Setup
-
-The Prisma schema is in `platform/prisma/schema.prisma`.
-
-The configured provider is MySQL.
-
-Example `DATABASE_URL`:
-
-```text
-mysql://ai_dev_user:password@127.0.0.1:3306/ai_dev_workspace
-```
-
-Initialize Prisma after setting `DATABASE_URL`:
+Prisma 명령:
 
 ```powershell
 cd platform
@@ -182,87 +81,29 @@ npm run prisma:generate
 npm run prisma:migrate
 ```
 
-Main tables:
+## 프로젝트 추가
 
-- `Project`: registered project metadata and detected commands
-- `ChangeRequest`: requested user changes
-- `ProjectAnalysis`: selected-project analysis result
-- `GeneratedChatGptPrompt`: prompt copied to ChatGPT
-- `CodexPrompt`: prompt copied back into Codex
-- `CodexRun`: execution history
-- `CodexLog`: command and run logs
-- `FileChange`: Git/file change summaries
-- `ValidationResult`: lint, typecheck, test, build results
-- `WorkspaceSetting`: workspace configuration
-- `DatabaseSetting`: DB connection metadata without raw secret storage
+- `projects/` 아래에 직접 복사
+- 관리툴의 프로젝트 추가 기능으로 폴더 업로드
+- GitHub 저장소 URL로 clone 또는 pull
 
-## Project Registration
+각 프로젝트는 자기 Git 저장소를 따로 가집니다. 관리툴 저장소에는 실제 프로젝트 소스를 넣지 않습니다.
 
-The management tool supports three project-add flows.
-
-1. Manual folder placement
-
-Place a project folder directly under `PROJECTS_ROOT`, then register or rescan it from the UI.
-
-```text
-AI-DEV-WORKSPACE/
-  projects/
-    my-project/
-      README.md
-      .git/
-      ...
-```
-
-2. Folder upload
-
-Use the UI project-add button. The browser file picker copies the selected directory, including child files, into `PROJECTS_ROOT/project-name`.
-
-3. GitHub import
-
-Enter a GitHub repository URL in the UI. The tool clones it into `PROJECTS_ROOT/project-name`.
-
-If the folder already exists and contains `.git`, the tool updates it with:
+## 검증
 
 ```powershell
-git pull --ff-only
+cd platform
+npm run typecheck
+npm run lint
 ```
 
-## Project Recognition
+## 인코딩
 
-A direct child folder of `PROJECTS_ROOT` is treated as a project candidate when it contains at least one marker:
+모든 소스와 문서는 UTF-8로 저장합니다.
 
 ```text
-.git
-README.md
-package.json
-requirements.txt
-pyproject.toml
-pom.xml
-build.gradle
-build.gradle.kts
-go.mod
-Cargo.toml
-composer.json
+.editorconfig
+.gitattributes
 ```
 
-## Managed Project Server Execution
-
-Managed project servers are separate from the management tool server.
-
-The UI should derive run candidates from the selected project's Markdown/config files. Examples:
-
-- FastAPI: `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000`
-- Next.js: `npm run dev -- --hostname 127.0.0.1 --port 3000`
-- Vite: `npm run dev -- --host 127.0.0.1 --port 5173`
-- Spring Boot: `./gradlew bootRun` or `mvn spring-boot:run`
-
-Only the selected project's command may be run. The tool must not start every project server at once.
-
-## Safety Rules
-
-- Do not read Markdown from sibling projects.
-- Do not generate one prompt from multiple projects.
-- Do not modify managed project source from the management-tool session.
-- Do not commit `projects/`, `.env`, `.next/`, `node_modules/`, or logs.
-- Treat ChatGPT as a manual copy/paste step.
-- Keep OpenAI API usage out of this tool unless the product concept changes explicitly.
+한글이 깨지면 해당 파일을 UTF-8로 다시 저장한 뒤 typecheck와 lint를 통과시킵니다.
