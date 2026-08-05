@@ -7,6 +7,12 @@ cd platform
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\start-management-server.ps1
 ```
 
+재시작:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\start-management-server.ps1 -Restart
+```
+
 접속:
 
 ```text
@@ -20,12 +26,26 @@ curl.exe -s -o NUL -w "%{http_code}" http://127.0.0.1:3000/
 curl.exe -s -o NUL -w "%{http_code}" http://127.0.0.1:3000/api/projects
 ```
 
-정상 응답:
+정상 응답은 둘 다 `200`입니다.
 
-```text
-200
-200
-```
+## 실제 프로젝트 서버
+
+관리툴 서버와 실제 프로젝트 서버는 별도입니다.
+
+- 관리툴 서버: 이 도구 자체를 실행합니다.
+- 실제 프로젝트 서버: 선택한 프로젝트의 `.md` 또는 설정 파일에서 실행 후보를 읽어 실행합니다.
+- 한 번에 모든 프로젝트 서버를 띄우지 않습니다.
+
+기본 포트 예시:
+
+| 종류 | 포트 |
+| --- | --- |
+| 관리툴 | `3000` |
+| Next.js | `3000` |
+| Vite | `5173` |
+| FastAPI | `8000` |
+| Flask | `5000` |
+| Spring Boot | `8080` |
 
 ## 관리툴 소스 push
 
@@ -39,22 +59,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\push-management-sour
 
 - 관리툴 소스만 push합니다.
 - 실제 프로젝트 소스는 push하지 않습니다.
-- `.env`, 로그, 빌드 산출물, 의존성 폴더는 제외합니다.
+- `.env`, 로그, 빌드 결과물, 의존성 폴더는 제외합니다.
 - 토큰 값은 출력하지 않습니다.
-
-## 실제 프로젝트 서버
-
-관리툴 서버와 실제 프로젝트 서버는 별도입니다.
-
-프로젝트 서버 실행 명령은 선택한 프로젝트의 문서와 설정 파일에서 후보를 찾습니다. 한 번에 여러 프로젝트 서버를 실행하지 않습니다.
-
-대표 포트:
-
-| 종류 | 포트 |
-| --- | --- |
-| 관리툴 | `3000` |
-| Next.js | `3000` |
-| Vite | `5173` |
-| FastAPI | `8000` |
-| Flask | `5000` |
-| Spring Boot | `8080` |

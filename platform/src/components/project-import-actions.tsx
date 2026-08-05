@@ -1,7 +1,7 @@
 "use client";
 
 import { type ChangeEvent, useRef, useState } from "react";
-import { ChevronDown, ChevronRight, FolderInput, FolderPlus, Github, Loader2, RefreshCw, Upload, type LucideIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderPlus, Github, Loader2, RefreshCw, Upload, type LucideIcon } from "lucide-react";
 
 type ImportResponse =
   | {
@@ -9,8 +9,8 @@ type ImportResponse =
       result: {
         projectName: string;
         projectPath: string;
-        source: "github" | "manual" | "upload";
-        action?: "cloned" | "pulled" | "registered" | "uploaded";
+        source: "github" | "upload";
+        action?: "cloned" | "pulled" | "uploaded";
         message: string;
       };
     }
@@ -19,7 +19,6 @@ type ImportResponse =
 export function ProjectImportActions({ projectsRoot }: { projectsRoot: string }) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [manualProjectName, setManualProjectName] = useState("");
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [uploadProjectName, setUploadProjectName] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -31,13 +30,10 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
     const files = Array.from(event.target.files ?? []);
     const firstPath = files[0]?.webkitRelativePath || files[0]?.name || "";
     const folderName = firstPath.split("/")[0] || "";
+
     setUploadFiles(files);
     setUploadProjectName(folderName);
     setMessage(files.length > 0 ? `${folderName} 폴더에서 ${files.length}개 파일을 선택했습니다.` : "");
-  }
-
-  async function registerManualProject() {
-    await submitJson("/api/projects/register", { projectName: manualProjectName });
   }
 
   async function importGithubProject() {
@@ -64,7 +60,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
         body: formData
       });
       const data = (await response.json()) as ImportResponse;
-      setMessage(data.ok ? `${data.result.message} 목록 새로고침 후 확인하세요.` : data.message);
+      setMessage(data.ok ? `${data.result.message} 목록을 새로고침해 확인하세요.` : data.message);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "프로젝트 업로드에 실패했습니다.");
     } finally {
@@ -83,7 +79,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
         body: JSON.stringify(body)
       });
       const data = (await response.json()) as ImportResponse;
-      setMessage(data.ok ? `${data.result.message} 목록 새로고침 후 확인하세요.` : data.message);
+      setMessage(data.ok ? `${data.result.message} 목록을 새로고침해 확인하세요.` : data.message);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "프로젝트 추가에 실패했습니다.");
     } finally {
@@ -97,7 +93,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
         <button className="flex min-w-0 items-center gap-2 text-left" onClick={() => setIsOpen((value) => !value)} type="button">
           {isOpen ? <ChevronDown size={16} aria-hidden /> : <ChevronRight size={16} aria-hidden />}
           <span className="font-semibold text-slate-950 dark:text-white">프로젝트 추가</span>
-          <span className="truncate text-xs text-slate-500 dark:text-slate-400">복사, 업로드, GitHub clone/pull</span>
+          <span className="truncate text-xs text-slate-500 dark:text-slate-400">폴더 업로드 또는 GitHub clone/pull</span>
         </button>
         <button
           className="inline-flex h-8 shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -114,33 +110,12 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
 
       {isOpen && (
         <div className="space-y-3 border-t border-slate-200 p-4 dark:border-slate-800">
-          <p className="truncate text-[11px] text-slate-400 dark:text-slate-500" title={projectsRoot}>
-            PROJECTS_ROOT: {projectsRoot}
+          <p className="text-xs text-slate-500 dark:text-slate-400" title={projectsRoot}>
+            저장 위치: 관리툴의 <span className="font-medium text-slate-700 dark:text-slate-200">projects/</span> 하위
           </p>
 
           <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-            <Label icon={FolderInput} title="1. 복사된 폴더 등록" text="이미 관리 대상 폴더 아래에 있는 프로젝트 폴더명을 등록합니다." />
-            <div className="flex gap-2">
-              <input
-                value={manualProjectName}
-                onChange={(event) => setManualProjectName(event.target.value)}
-                placeholder="프로젝트 폴더명"
-                className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none ring-blue-600 focus:ring-2 dark:border-slate-800 dark:bg-slate-900"
-              />
-              <button
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                disabled={isSubmitting || !manualProjectName.trim()}
-                onClick={registerManualProject}
-                type="button"
-              >
-                {isSubmitting ? <Loader2 className="animate-spin" size={15} aria-hidden /> : <FolderPlus size={15} aria-hidden />}
-                등록
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-            <Label icon={Upload} title="2. 폴더 업로드" text="브라우저에서 선택한 폴더와 하위 파일을 관리 대상 폴더로 복사합니다." />
+            <Label icon={Upload} title="1. 폴더 업로드" text="선택한 폴더의 내용을 projects/프로젝트명 아래로 복사합니다." />
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -153,7 +128,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
               <input
                 value={uploadProjectName}
                 onChange={(event) => setUploadProjectName(event.target.value)}
-                placeholder="저장할 폴더명"
+                placeholder="저장할 프로젝트명"
                 className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none ring-blue-600 focus:ring-2 dark:border-slate-800 dark:bg-slate-900"
               />
               <button
@@ -169,7 +144,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
           </div>
 
           <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-            <Label icon={Github} title="3. GitHub clone / pull" text="처음이면 clone, 같은 폴더가 있으면 pull로 업데이트합니다." />
+            <Label icon={Github} title="2. GitHub clone / pull" text="처음이면 projects/프로젝트명으로 clone하고, 이미 있으면 해당 폴더에서 pull합니다." />
             <input
               value={githubUrl}
               onChange={(event) => setGithubUrl(event.target.value)}
@@ -180,7 +155,7 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
               <input
                 value={githubProjectName}
                 onChange={(event) => setGithubProjectName(event.target.value)}
-                placeholder="저장할 폴더명, 비우면 저장소명 사용"
+                placeholder="저장할 프로젝트명, 비우면 저장소명 사용"
                 className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none ring-blue-600 focus:ring-2 dark:border-slate-800 dark:bg-slate-900"
               />
               <button

@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     await mkdir(projectPath, { recursive: true });
 
     for (const file of files) {
-      const relativePath = normalizeUploadedRelativePath(projectName, file.name);
+      const relativePath = normalizeUploadedRelativePath(file.name);
       const targetPath = assertPathBelongsToProject(projectPath, path.join(projectPath, relativePath));
       await mkdir(path.dirname(targetPath), { recursive: true });
       await writeFile(targetPath, Buffer.from(await file.arrayBuffer()));
@@ -67,14 +67,19 @@ export async function POST(request: Request) {
   }
 }
 
-function normalizeUploadedRelativePath(projectName: string, fileName: string) {
-  const normalized = fileName.replaceAll("\\", "/");
-  const withoutRoot = normalized.startsWith(`${projectName}/`) ? normalized.slice(projectName.length + 1) : normalized;
-  const cleanParts = withoutRoot.split("/").filter((part) => part && part !== "." && part !== "..");
+export function normalizeUploadedRelativePath(fileName: string) {
+  const parts = fileName
+    .replaceAll("\\", "/")
+    .split("/")
+    .filter((part) => part && part !== "." && part !== "..");
 
-  if (cleanParts.length === 0) {
+  if (parts.length > 1) {
+    parts.shift();
+  }
+
+  if (parts.length === 0) {
     throw new Error("업로드 파일 경로를 확인할 수 없습니다.");
   }
 
-  return cleanParts.join("/");
+  return parts.join("/");
 }

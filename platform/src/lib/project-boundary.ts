@@ -17,7 +17,7 @@ export function assertProjectPath(projectsRoot: string, projectPath: string) {
   const resolvedProjectPath = path.resolve(projectPath);
 
   if (!isPathInside(resolvedRoot, resolvedProjectPath)) {
-    throw new Error("Project path must be a direct workspace project path under PROJECTS_ROOT.");
+    throw new Error("프로젝트 경로는 PROJECTS_ROOT 바로 아래에 있어야 합니다.");
   }
 
   return resolvedProjectPath;
@@ -28,7 +28,7 @@ export function assertPathBelongsToProject(projectPath: string, candidatePath: s
   const resolvedCandidatePath = path.resolve(candidatePath);
 
   if (!isPathInsideOrEqual(resolvedProjectPath, resolvedCandidatePath)) {
-    throw new Error("Project file access crossed the selected project boundary.");
+    throw new Error("선택한 프로젝트 밖의 파일에는 접근할 수 없습니다.");
   }
 
   return resolvedCandidatePath;
@@ -47,7 +47,7 @@ export function sanitizeProjectFolderName(projectName: string) {
   const sanitized = projectName.trim().replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 
   if (!sanitized) {
-    throw new Error("Project folder name is empty after sanitizing.");
+    throw new Error("프로젝트 폴더명을 확인하세요.");
   }
 
   return sanitized;

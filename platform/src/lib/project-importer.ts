@@ -11,29 +11,10 @@ const execFileAsync = promisify(execFile);
 export type ProjectImportResult = {
   projectName: string;
   projectPath: string;
-  source: "github" | "manual" | "upload";
-  action?: "cloned" | "pulled" | "registered" | "uploaded";
+  source: "github" | "upload";
+  action?: "cloned" | "pulled" | "uploaded";
   message: string;
 };
-
-export async function registerExistingProject(projectName: string): Promise<ProjectImportResult> {
-  const projectsRoot = getProjectsRoot();
-  const safeProjectName = sanitizeProjectFolderName(projectName);
-  const projectPath = assertProjectPath(projectsRoot, path.resolve(projectsRoot, safeProjectName));
-  const project = await scanProjectCandidate(projectPath);
-
-  if (!project) {
-    throw new Error("Project marker files were not found under PROJECTS_ROOT.");
-  }
-
-  return {
-    projectName: project.name,
-    projectPath,
-    source: "manual",
-    action: "registered",
-    message: "Manual project registered."
-  };
-}
 
 export async function importGithubProject({
   repoUrl,
@@ -68,7 +49,7 @@ export async function importGithubProject({
   const project = await scanProjectCandidate(targetPath);
 
   if (!project) {
-    throw new Error("Repository was cloned, but project marker files were not found.");
+    throw new Error("저장소를 가져왔지만 프로젝트 감지 파일을 찾지 못했습니다.");
   }
 
   return {
@@ -76,7 +57,7 @@ export async function importGithubProject({
     projectPath: targetPath,
     source: "github",
     action: alreadyExists ? "pulled" : "cloned",
-    message: alreadyExists ? "GitHub project updated." : "GitHub project imported."
+    message: alreadyExists ? "GitHub 프로젝트를 pull로 업데이트했습니다." : "GitHub 프로젝트를 clone했습니다."
   };
 }
 
@@ -84,7 +65,7 @@ export function normalizeGithubUrl(repoUrl: string) {
   const trimmed = repoUrl.trim().replace(/\.git$/, "");
 
   if (!/^https:\/\/github\.com\/[^/\s]+\/[^/\s]+$/i.test(trimmed)) {
-    throw new Error("GitHub URL must use https://github.com/owner/repository format.");
+    throw new Error("GitHub URL은 https://github.com/owner/repository 형식이어야 합니다.");
   }
 
   return `${trimmed}.git`;
@@ -105,6 +86,6 @@ async function pathExists(filePath: string) {
 
 async function ensureGitRepository(projectPath: string) {
   if (!(await pathExists(path.join(projectPath, ".git")))) {
-    throw new Error("Target folder already exists but is not a Git repository.");
+    throw new Error("대상 폴더가 이미 있지만 Git 저장소가 아닙니다.");
   }
 }
