@@ -30,13 +30,21 @@ export function MarkdownPromptPanel({
   const [result, setResult] = useState<MarkdownPromptResponse>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [validationMessage, setValidationMessage] = useState("");
 
   async function generatePrompt() {
     if (!selectedProject) return;
 
+    if (changeRequest.trim().length < 5) {
+      setValidationMessage("수정하고 싶은 내용을 5글자 이상 입력하세요.");
+      setResult(null);
+      return;
+    }
+
     setIsGenerating(true);
     setResult(null);
     setCopyState("idle");
+    setValidationMessage("");
 
     try {
       const response = await fetch("/api/chatgpt/markdown-prompt", {
@@ -94,6 +102,7 @@ export function MarkdownPromptPanel({
               setChangeRequest(event.target.value);
               setResult(null);
               setCopyState("idle");
+              setValidationMessage("");
             }}
             className="mt-2 min-h-36 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600 transition focus:ring-2 dark:border-slate-800 dark:bg-slate-950"
           />
@@ -102,7 +111,7 @@ export function MarkdownPromptPanel({
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <button
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={changeRequest.trim().length < 5 || isGenerating}
+            disabled={isGenerating}
             onClick={generatePrompt}
             type="button"
           >
@@ -120,6 +129,7 @@ export function MarkdownPromptPanel({
           </button>
         </div>
 
+        {validationMessage && <p className="mt-3 text-sm text-amber-700 dark:text-amber-300">{validationMessage}</p>}
         {result && !result.ok && <p className="mt-3 text-sm text-red-700 dark:text-red-300">{result.message}</p>}
       </div>
 
