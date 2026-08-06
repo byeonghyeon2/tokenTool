@@ -26,7 +26,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <div>
               <p className="text-sm font-semibold leading-5">AI Dev Workspace</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Markdown 기반 ChatGPT/Codex 복붙 작업 관리</p>
             </div>
           </div>
           <div className="hidden items-center gap-3 text-sm text-slate-600 dark:text-slate-300 md:flex">
