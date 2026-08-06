@@ -90,10 +90,12 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
   return (
     <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex w-full items-center justify-between gap-3 px-4 py-3">
-        <button className="flex min-w-0 items-center gap-2 text-left" onClick={() => setIsOpen((value) => !value)} type="button">
+        <button className="flex min-w-0 items-center gap-3 text-left" onClick={() => setIsOpen((value) => !value)} type="button">
           {isOpen ? <ChevronDown size={16} aria-hidden /> : <ChevronRight size={16} aria-hidden />}
-          <span className="font-semibold text-slate-950 dark:text-white">프로젝트 추가</span>
-          <span className="truncate text-xs text-slate-500 dark:text-slate-400">폴더 업로드 또는 GitHub clone/pull</span>
+          <span className="shrink-0 font-semibold text-slate-950 dark:text-white">프로젝트 추가</span>
+          <span className="truncate text-xs text-slate-500 dark:text-slate-400" title={projectsRoot}>
+            저장 위치: 관리툴의 <span className="font-medium text-slate-700 dark:text-slate-200">projects/</span> 하위
+          </span>
         </button>
         <button
           className="inline-flex h-8 shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -110,12 +112,8 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
 
       {isOpen && (
         <div className="space-y-3 border-t border-slate-200 p-4 dark:border-slate-800">
-          <p className="text-xs text-slate-500 dark:text-slate-400" title={projectsRoot}>
-            저장 위치: 관리툴의 <span className="font-medium text-slate-700 dark:text-slate-200">projects/</span> 하위
-          </p>
-
-          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-            <Label icon={Upload} title="1. 폴더 업로드" text="선택한 폴더의 내용을 projects/프로젝트명 아래로 복사합니다." />
+          <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+            <Label icon={Upload} title="1. 폴더 업로드" />
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -143,8 +141,8 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
             </div>
           </div>
 
-          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-            <Label icon={Github} title="2. GitHub clone / pull" text="처음이면 projects/프로젝트명으로 clone하고, 이미 있으면 해당 폴더에서 pull합니다." />
+          <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+            <Label icon={Github} title="2. GitHub clone / pull" />
             <input
               value={githubUrl}
               onChange={(event) => setGithubUrl(event.target.value)}
@@ -178,14 +176,11 @@ export function ProjectImportActions({ projectsRoot }: { projectsRoot: string })
   );
 }
 
-function Label({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
+function Label({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
   return (
-    <div className="flex items-start gap-2">
-      <Icon className="mt-0.5 text-slate-500" size={15} aria-hidden />
-      <div>
-        <p className="text-sm font-semibold text-slate-950 dark:text-white">{title}</p>
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{text}</p>
-      </div>
+    <div className="flex items-center gap-2">
+      <Icon className="text-slate-500" size={15} aria-hidden />
+      <p className="text-sm font-semibold text-slate-950 dark:text-white">{title}</p>
     </div>
   );
 }
