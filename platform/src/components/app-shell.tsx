@@ -1,20 +1,6 @@
 "use client";
 
-import {
-  BookOpen,
-  ClipboardCheck,
-  ClipboardList,
-  Database,
-  FileClock,
-  FolderKanban,
-  GitBranch,
-  MonitorCog,
-  PanelLeftClose,
-  PanelLeftOpen,
-  RefreshCw,
-  Settings,
-  Sparkles
-} from "lucide-react";
+import { BookOpen, FolderKanban, GitBranch, PanelLeftClose, PanelLeftOpen, RefreshCw, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -23,14 +9,7 @@ import { cn } from "@/lib/utils";
 
 const menuItems = [
   { label: "프로젝트", icon: FolderKanban, href: "/" },
-  { label: "추가 준비", icon: ClipboardList, href: "/project-readiness" },
-  { label: "프로젝트 작업", icon: BookOpen, href: "/project-summary" },
-  { label: "검토 현황", icon: ClipboardCheck, href: "/review-board" },
-  { label: "작업 기록", icon: FileClock, href: "/runs" },
-  { label: "MySQL 설정", icon: Database, href: "/settings/database" },
-  { label: "환경 진단", icon: MonitorCog, href: "/diagnostics" },
-  { label: "사용 방법", icon: BookOpen, href: "/workspace-guide" },
-  { label: "설정", icon: Settings, href: "/settings/workspace" }
+  { label: "프로젝트 작업", icon: BookOpen, href: "/project-summary" }
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
