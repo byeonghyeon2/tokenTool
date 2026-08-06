@@ -1,15 +1,19 @@
-import { spawn } from "child_process";
-import { createWriteStream } from "fs";
-import { access, mkdir } from "fs/promises";
+import { access, mkdir, writeFile } from "fs/promises";
 import path from "path";
 
 import { getProjectsRoot, isPathInside, scanProjectCandidate } from "./project-scanner";
 import { getServerCommandCandidates } from "./server-command-candidates";
 
+export type ProjectServerRunPlan = {
+  script: string;
+  displayCommand: string;
+};
+
 export type ProjectServerStartResult = {
   projectName: string;
   command: string;
   executedCommand: string;
+  executedScript: string;
   pid: number | null;
   urls: string[];
   logPath: string;
@@ -49,37 +53,55 @@ export async function startProjectServer({
 
   const runPlan = await buildRunPlan(projectPath, selectedCommand);
   const logPath = await createLogPath(project.name);
-  const logStream = createWriteStream(logPath, { flags: "a" });
-  const child = spawn("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", runPlan.script], {
-    cwd: projectPath,
-    detached: true,
-    stdio: ["ignore", logStream, logStream],
-    windowsHide: true,
-    env: {
-      ...process.env,
-      Path: `C:\\Program Files\\nodejs;${process.env.Path || process.env.PATH || ""}`
-    }
-  });
+  const errorLogPath = logPath.replace(/\.log$/i, ".err.log");
+  const scriptPath = logPath.replace(/\.log$/i, ".ps1");
+  const executedScript = formatDisplayedRunScript(projectPath, runPlan.script);
 
-  child.unref();
+  await writeFile(scriptPath, executedScript, "utf8");
+  await writeFile(errorLogPath, "자동 실행은 관리툴 안정화 단계에서 보류되었습니다.\n", "utf8");
 
   return {
     projectName: project.name,
     command: selectedCommand,
     executedCommand: runPlan.displayCommand,
-    pid: child.pid ?? null,
+    executedScript,
+    pid: null,
     urls: inferAccessUrls(runPlan.displayCommand, project.stack),
     logPath,
-    message: "선택한 실제 프로젝트 서버 실행을 시작했습니다."
+    message: "자동 실행은 보류되었습니다. 화면에 표시된 스크립트를 수동으로 실행하세요."
   };
 }
 
-async function buildRunPlan(projectPath: string, selectedCommand: string) {
+export function buildStartProcessLauncher({
+  projectPath,
+  scriptPath,
+  logPath,
+  errorLogPath
+}: {
+  projectPath: string;
+  scriptPath: string;
+  logPath: string;
+  errorLogPath: string;
+}) {
+  return [
+    "$Process = Start-Process",
+    "-FilePath 'powershell.exe'",
+    `-ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ${quotePowerShellPath(scriptPath)})`,
+    `-WorkingDirectory ${quotePowerShellPath(projectPath)}`,
+    `-RedirectStandardOutput ${quotePowerShellPath(logPath)}`,
+    `-RedirectStandardError ${quotePowerShellPath(errorLogPath)}`,
+    "-WindowStyle Hidden",
+    "-PassThru",
+    "; $Process.Id"
+  ].join(" ");
+}
+
+export async function buildRunPlan(projectPath: string, selectedCommand: string): Promise<ProjectServerRunPlan> {
   const isUvicorn = /\buvicorn\b/i.test(selectedCommand);
 
   if (!isUvicorn) {
     return {
-      script: `$ErrorActionPreference = 'Stop'; ${selectedCommand}`,
+      script: ["$ErrorActionPreference = 'Stop'", selectedCommand].join("\n"),
       displayCommand: selectedCommand
     };
   }
@@ -91,23 +113,43 @@ async function buildRunPlan(projectPath: string, selectedCommand: string) {
   ];
 
   if (hasRequirements) {
+    setupCommands.push("$PythonExe = 'python'");
     setupCommands.push("if ((Test-Path '.venv\\Scripts\\python.exe') -eq $false) { python -m venv .venv }");
-    setupCommands.push(".\\.venv\\Scripts\\python.exe -m pip show uvicorn *> $null; if ($LASTEXITCODE -ne 0) { .\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt }");
+    setupCommands.push("if (Test-Path '.venv\\Scripts\\python.exe') { $PythonExe = '.\\.venv\\Scripts\\python.exe' }");
+    setupCommands.push("$ErrorActionPreference = 'Continue'");
+    setupCommands.push("& $PythonExe -m pip --version *> $null");
+    setupCommands.push("$PipExitCode = $LASTEXITCODE");
+    setupCommands.push("$ErrorActionPreference = 'Stop'");
+    setupCommands.push("if ($PipExitCode -ne 0) { $PythonExe = 'python' }");
+    setupCommands.push("$ErrorActionPreference = 'Continue'");
+    setupCommands.push("& $PythonExe -m pip show uvicorn *> $null");
+    setupCommands.push("$UvicornExitCode = $LASTEXITCODE");
+    setupCommands.push("$ErrorActionPreference = 'Stop'");
+    setupCommands.push("if ($UvicornExitCode -ne 0) { & $PythonExe -m pip install -r requirements.txt }");
   }
 
-  const displayCommand = toPythonModuleUvicornCommand(selectedCommand, hasRequirements);
+  const displayCommand = toPythonModuleUvicornCommand(selectedCommand, "python");
+  const scriptCommand = toPythonModuleUvicornCommand(selectedCommand, hasRequirements ? "$PythonExe" : "python");
 
   return {
-    script: [...setupCommands, displayCommand].join("; "),
+    script: [...setupCommands, scriptCommand].join("\n"),
     displayCommand
   };
 }
 
-function toPythonModuleUvicornCommand(command: string, useVenv: boolean) {
+export function formatDisplayedRunScript(projectPath: string, script: string) {
+  return [`Set-Location -LiteralPath ${quotePowerShellPath(projectPath)}`, ...script.split(/\r?\n|;/).map((line) => line.trim()).filter(Boolean)].join("\n");
+}
+
+function quotePowerShellPath(value: string) {
+  return `'${value.replaceAll("'", "''")}'`;
+}
+
+function toPythonModuleUvicornCommand(command: string, pythonExecutable: string) {
   const trimmed = command.trim();
   const normalized = trimmed.replace(/^python\s+-m\s+/i, "");
   const uvicornPart = normalized.toLowerCase().startsWith("uvicorn ") ? normalized : trimmed;
-  const pythonPrefix = useVenv ? ".\\.venv\\Scripts\\python.exe -m " : "python -m ";
+  const pythonPrefix = pythonExecutable.startsWith("$") ? `& ${pythonExecutable} -m ` : `${pythonExecutable} -m `;
   const commandWithPython = uvicornPart.toLowerCase().startsWith("uvicorn ") ? `${pythonPrefix}${uvicornPart}` : trimmed;
   const commandWithHost = /(?:--host|host=)\s*=?\s*[^\s]+/i.test(commandWithPython)
     ? commandWithPython

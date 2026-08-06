@@ -2,26 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ExternalLink, Loader2, Play } from "lucide-react";
+import { Play } from "lucide-react";
 
 import type { ScannedProject } from "@/lib/project-scanner";
 import { getServerCommandCandidates } from "@/lib/server-command-candidates";
-
-type ServerStartResponse =
-  | {
-      ok: true;
-      result: {
-        projectName: string;
-        command: string;
-        executedCommand: string;
-        pid: number | null;
-        urls: string[];
-        logPath: string;
-        message: string;
-      };
-    }
-  | { ok: false; message: string }
-  | null;
 
 export function ProjectSummaryEditor({
   projects,
@@ -42,20 +26,17 @@ export function ProjectSummaryEditor({
   const serverCommandCandidates = useMemo(() => (selectedProject ? getServerCommandCandidates(selectedProject) : []), [selectedProject]);
   const [selectedCommandByProject, setSelectedCommandByProject] = useState<Record<string, string>>({});
   const selectedCommand = selectedProject ? selectedCommandByProject[selectedProject.name] ?? serverCommandCandidates[0] ?? "" : "";
-  const [isStarting, setIsStarting] = useState(false);
-  const [serverResult, setServerResult] = useState<ServerStartResponse>(null);
 
   if (!selectedProject) {
     return (
       <section className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-        아직 감지된 프로젝트가 없습니다. 프로젝트를 등록하면 실행 후보를 선택해 실제 프로젝트 서버를 띄울 수 있습니다.
+        아직 감지된 프로젝트가 없습니다. 프로젝트를 등록하면 실행 후보를 확인할 수 있습니다.
       </section>
     );
   }
 
   function selectProject(projectName: string) {
     setClientSelectedProjectName(projectName);
-    setServerResult(null);
   }
 
   function selectCommand(command: string) {
@@ -63,27 +44,9 @@ export function ProjectSummaryEditor({
       ...current,
       [selectedProject.name]: command
     }));
-    setServerResult(null);
   }
 
-  async function startServer() {
-    setIsStarting(true);
-    setServerResult(null);
-
-    try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(selectedProject.name)}/server/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: selectedCommand })
-      });
-      const data = (await response.json()) as ServerStartResponse;
-      setServerResult(data);
-    } catch (error) {
-      setServerResult({ ok: false, message: error instanceof Error ? error.message : "프로젝트 서버 실행에 실패했습니다." });
-    } finally {
-      setIsStarting(false);
-    }
-  }
+  const previewScript = selectedCommand ? [`Set-Location -LiteralPath '${selectedProject.path.replaceAll("'", "''")}'`, selectedCommand].join("\n") : "";
 
   const content = (
     <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -99,13 +62,12 @@ export function ProjectSummaryEditor({
         </div>
 
         <button
-          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!selectedCommand || isStarting}
-          onClick={startServer}
+          className="inline-flex h-10 shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-slate-300 px-4 text-sm font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+          disabled
           type="button"
         >
-          {isStarting ? <Loader2 className="animate-spin" size={16} aria-hidden /> : <Play size={16} aria-hidden />}
-          실제 프로젝트 서버 실행
+          <Play size={16} aria-hidden />
+          서버 실행 보류
         </button>
       </div>
 
@@ -116,8 +78,8 @@ export function ProjectSummaryEditor({
       <section className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
         <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-slate-950 dark:text-white">실제 프로젝트 서버 명령</h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">관리툴 서버가 아니라 선택한 프로젝트 폴더에서 실행할 명령입니다.</p>
+            <h3 className="text-sm font-semibold text-slate-950 dark:text-white">프로젝트 서버 명령</h3>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">관리툴 안정화가 우선이라 자동 실행은 잠시 보류하고, 실행 후보와 스크립트만 표시합니다.</p>
           </div>
           {selectedCommand && <code className="rounded-md bg-white px-2 py-1 font-mono text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200">{selectedCommand}</code>}
         </div>
@@ -142,44 +104,16 @@ export function ProjectSummaryEditor({
         ) : (
           <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">감지된 서버 실행 후보가 없습니다.</p>
         )}
-      </section>
 
-      {serverResult && (
-        <div
-          className={`mt-4 rounded-lg border p-4 text-sm ${
-            serverResult.ok
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200"
-              : "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200"
-          }`}
-        >
-          {serverResult.ok ? (
-            <div>
-              <p className="font-medium">{serverResult.result.message}</p>
-              <p className="mt-1 font-mono text-xs">PID: {serverResult.result.pid ?? "확인 중"}</p>
-              <p className="mt-1 font-mono text-xs">실행: {serverResult.result.executedCommand}</p>
-              <p className="mt-1 truncate font-mono text-xs" title={serverResult.result.logPath}>
-                로그: {serverResult.result.logPath}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {serverResult.result.urls.map((url) => (
-                  <a
-                    key={url}
-                    className="inline-flex h-8 items-center gap-2 rounded-lg bg-white px-3 text-xs font-medium text-emerald-800 hover:bg-emerald-100 dark:bg-slate-900 dark:text-emerald-200 dark:hover:bg-slate-800"
-                    href={url}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {url}
-                    <ExternalLink size={13} aria-hidden />
-                  </a>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="font-medium">{serverResult.message}</p>
-          )}
-        </div>
-      )}
+        {previewScript && (
+          <div className="mt-4">
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">수동 실행 스크립트</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-slate-100">
+              <code>{previewScript}</code>
+            </pre>
+          </div>
+        )}
+      </section>
     </section>
   );
 

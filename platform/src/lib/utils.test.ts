@@ -6,6 +6,7 @@ import { canRunCodexCli, normalizeProvider, summarizePrompt } from "./codex-runn
 import { parseCodexArgs } from "./codex-cli-executor";
 import { getCodexCommandConfig } from "./codex-cli-executor";
 import { inferProjectCommands } from "./project-command-inference";
+import { buildRunPlan, formatDisplayedRunScript } from "./project-server-runner";
 import { buildMockPatch, parseGitStatus } from "./git-diff";
 import { buildMigrationPathEnv, sanitizeCommandOutput } from "./migration-runner";
 import { buildChatGptPrompt, isPathInsideOrEqual } from "./prompt-workflow";
@@ -70,6 +71,28 @@ describe("project command inference helpers", () => {
   it("infers Java and Python command candidates", () => {
     expect(inferProjectCommands(["pom.xml"]).testCommand).toBe("mvn test");
     expect(inferProjectCommands(["pyproject.toml"]).lintCommand).toBe("ruff check .");
+  });
+});
+
+describe("project server runner helpers", () => {
+  it("builds a plain project server run plan", async () => {
+    const plan = await buildRunPlan("C:\\workspace\\projects\\sample", "npm run dev");
+
+    expect(plan.displayCommand).toBe("npm run dev");
+    expect(plan.script).toContain("npm run dev");
+  });
+
+  it("normalizes uvicorn commands with host and port", async () => {
+    const plan = await buildRunPlan("C:\\workspace\\projects\\sample", "uvicorn app.main:app");
+
+    expect(plan.displayCommand).toBe("python -m uvicorn app.main:app --host 127.0.0.1 --port 8000");
+  });
+
+  it("formats the displayed server script with the project folder first", () => {
+    const script = formatDisplayedRunScript("C:\\workspace\\projects\\sample", "$ErrorActionPreference = 'Stop'\nnpm run dev");
+
+    expect(script).toContain("Set-Location -LiteralPath 'C:\\workspace\\projects\\sample'");
+    expect(script).toContain("npm run dev");
   });
 });
 
